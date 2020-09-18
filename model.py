@@ -53,7 +53,7 @@ class LPNET_V03(nn.Module):
         self.lane_coef = None
         self.device = device
         self.rnn_output_dim = rnn_output_dim  # 100
-        self.dynamic_input_dim = path_length  # 30
+        self.dynamic_input_dim = path_length
         self.BP_DIM = bp_dim
         self.F0_DIM = 512
         self.F1_DIM = 256
@@ -154,7 +154,7 @@ class LPNET(nn.Module):
 
         self.resnet18 = models.resnet18(pretrained=True).to(self.device)
         self.resnet18 = torch.nn.Sequential(*(list(self.resnet18.children())[:-1]))
-        # Unremark below with 8 channel input (IE)
+        # Un-remark below with 8 channel input (IE)
         self.resnet18[0] = nn.Conv2d(self.IE_CHANNEL, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False).to(device)
 
         self.F0_NET = nn.Linear(self.F0_DIM + self.BP_DIM, self.F1_DIM).to(self.device)

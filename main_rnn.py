@@ -27,6 +27,7 @@ def array_shuffle(a, b):
     p = np.random.permutation(len(a))
     return a[p], b[p]
 
+
 def array_rnd_sample(a, b):
     assert len(a) == len(b)
     idx = np.random.choice(np.arange(a.shape[0]), 600, replace=False)
@@ -39,6 +40,7 @@ def train(epoch, model, train_data_dir, train_data_name_list, optimizer, criteri
     data_size = 200
     # random number array for data index
     rnd_index = np.random.choice(len(train_data_name_list)-1, int(len(train_data_name_list)/10), replace=False)
+
 
     for i in range(rnd_index.shape[0]):
 
@@ -78,12 +80,14 @@ def train(epoch, model, train_data_dir, train_data_name_list, optimizer, criteri
 
         # GT output / path
         output_raw = input_json['data']['future_trajectory_tr']
+
         output = []
         for output_tmp in output_raw:
             output.append(output_tmp[0])
             output.append(output_tmp[1])
 
         output = torch.tensor(output).to(device).double()
+
 
         if input_lane_coef.all() == 0.0:
             loss_weight_lane = 0
@@ -100,8 +104,8 @@ def train(epoch, model, train_data_dir, train_data_name_list, optimizer, criteri
         mse_loss = criterion(predicted_output, output)
         loss = loss_weight_mse * mse_loss + loss_weight_lane * lane_loss
 
-        print("mse_loss", mse_loss)
-        print("lane_loss", lane_loss)
+        # print("mse_loss", mse_loss)
+        # print("lane_loss", lane_loss)
 
         loss_total = loss_total + loss.clone()
         loss_total = loss_total.cpu().detach()
@@ -127,7 +131,7 @@ if os.path.exists('/mnt/sda2/BDD/log/model_' + now_date + '_' + now_time + '/') 
 is_cuda = torch.cuda.is_available()
 device = torch.device('cuda' if is_cuda else 'cpu')
 
-expert_demo_train_dir = '/mnt/sda2/BDD/data_15'
+expert_demo_train_dir = '/mnt/sda2/BDD/data'
 
 # With above expert_dmo_train_dir, extract data file name list and save to train_data_name_list
 train_data_name_list = [f for f in listdir(expert_demo_train_dir) if isfile(join(expert_demo_train_dir, f))]
@@ -139,17 +143,23 @@ NETWORK STRUCTURE CONFIG
 """
 FEATURE_DIM = 128
 BP_DIM = 7
-IE_CHANNEL = 8
 LPNET_OUTPUT = 30
 LPNET_LSTM_INPUT = FEATURE_DIM + BP_DIM
 
+with open(expert_demo_train_dir + '/' + train_data_name_list[0]) as tmp_json2:
+    json_for_dynamic_input = json.load(tmp_json2)
+    output_path = json_for_dynamic_input['data']['future_trajectory_tr']
+    bp_tmp = json_for_dynamic_input['data']['behavior']
+    LPNET_OUTPUT = len(output_path) * 2
+    BP_DIM = len(bp_tmp)
+    print("Local Path Length Set Completed with", LPNET_OUTPUT)
+    print("BP Length Set Completed with", BP_DIM)
 
 # model = LPNET(rnn_output_dim=2, bp_dim=BP_DIM, path_length=LPNET_OUTPUT, device=device)
 # model = LPNET_R2P2(rnn_output_dim=100, bp_dim=BP_DIM, path_length=LPNET_OUTPUT, device=device)
 model = LPNET_V03(rnn_output_dim=100, bp_dim=BP_DIM, path_length=LPNET_OUTPUT, device=device)
 # model = LPNET_MLP(rnn_output_dim=2, bp_dim=BP_DIM, path_length=LPNET_OUTPUT, device=device)
 print(model)
-
 
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
 criterion = nn.MSELoss()
