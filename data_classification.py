@@ -7,7 +7,7 @@ from datetime import datetime
 import os
 import shutil
 
-data_raw_dir  = '/mnt/sda2/BDD/data_letsgaza'
+data_raw_dir  = '/mnt/sda2/BDD/data'
 
 for i in range(7):
     if os.path.exists(data_raw_dir + '/' + str(i)) is False:
@@ -35,8 +35,8 @@ for j in range(len(data_name_list)):
     except IOError:
         continue
 
-
-    print(json_myfile['data']['behavior'])
+    if j%100 == 0:
+        print(json_myfile['data']['behavior'])
 
     if json_myfile['data']['behavior'][0] == 1:
         shutil.move(data_raw_dir + '/' + data_name_list[j], data_raw_dir + '/0/' + data_name_list[j])

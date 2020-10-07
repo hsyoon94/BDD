@@ -130,7 +130,7 @@ if os.path.exists('/mnt/sda2/BDD/log/2/model_' + now_date + '_' + now_time + '/'
 is_cuda = torch.cuda.is_available()
 device = torch.device('cuda' if is_cuda else 'cpu')
 
-expert_demo_train_dir = '/mnt/sda2/BDD/data_letsgaza/2'
+expert_demo_train_dir = '/mnt/sda2/BDD/data/2'
 
 # With above expert_dmo_train_dir, extract data file name list and save to train_data_name_list
 train_data_name_list = [f for f in listdir(expert_demo_train_dir) if isfile(join(expert_demo_train_dir, f))]
