@@ -157,6 +157,8 @@ with open(expert_demo_train_dir + '/' + train_data_name_list[0]) as tmp_json2:
 model = LPNET_V03_sep(rnn_output_dim=100, path_length=LPNET_OUTPUT, device=device)
 
 print(model)
+pytorch_total_params = sum(p.numel() for p in model.parameters())
+print(pytorch_total_params)
 
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
 criterion = nn.MSELoss()

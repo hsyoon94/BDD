@@ -17,7 +17,7 @@ import PIL.Image as pilimg
 import numpy as np
 import time
 from datetime import datetime
-from model import MLP, LPNET, LPNET_MLP, LPNET_R2P2, LPNET_V03, LPNET_V03_sep
+from model import MLP, LPNET, LPNET_MLP, LPNET_R2P2, LPNET_V03, LPNET_V03_sep, LPNET_V04
 import os
 
 torch.set_num_threads(2)
@@ -115,7 +115,7 @@ def train(epoch, model, train_data_dir, train_data_name_list, optimizer, criteri
             print("Training with", epoch, "epoch,", i, "steps")
 
     # loss_total = loss_total.cpu().detach().numpy()
-    loss_total = loss_total.numpy()
+    loss_total = loss_total.numpy() / (rnd_index.shape[0] * 5)
     print("Epoch", epoch, " Iter loss", loss_total)
     return loss_total
 
@@ -124,13 +124,13 @@ now = datetime.now()
 now_date = str(now.year)[-2:] + str(now.month).zfill(2) + str(now.day).zfill(2)
 now_time = str(now.hour).zfill(2) + str(now.minute).zfill(2)
 
-if os.path.exists('/mnt/sda2/BDD/log/6/model_' + now_date + '_' + now_time + '/') is False:
-    os.mkdir('/mnt/sda2/BDD/log/6/model_' + now_date + '_' + now_time + '/')
+if os.path.exists('/mnt/sda2/BDD/log/0/model_' + now_date + '_' + now_time + '/') is False:
+    os.mkdir('/mnt/sda2/BDD/log/0/model_' + now_date + '_' + now_time + '/')
 
 is_cuda = torch.cuda.is_available()
 device = torch.device('cuda' if is_cuda else 'cpu')
 
-expert_demo_train_dir = '/mnt/sda2/BDD/data/6'
+expert_demo_train_dir = '/mnt/sda2/BDD/data/0'
 
 # With above expert_dmo_train_dir, extract data file name list and save to train_data_name_list
 train_data_name_list = [f for f in listdir(expert_demo_train_dir) if isfile(join(expert_demo_train_dir, f))]
@@ -154,9 +154,11 @@ with open(expert_demo_train_dir + '/' + train_data_name_list[0]) as tmp_json2:
     print("Local Path Length Set Completed with", LPNET_OUTPUT)
     print("BP Length Set Completed with", BP_DIM)
 
-model = LPNET_V03_sep(rnn_output_dim=100, path_length=LPNET_OUTPUT, device=device)
+model = LPNET_V04(rnn_output_dim=100, path_length=LPNET_OUTPUT, device=device)
 
 print(model)
+pytorch_total_params = sum(p.numel() for p in model.parameters())
+print(pytorch_total_params)
 
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
 criterion = nn.MSELoss()
@@ -166,7 +168,7 @@ for i in range(epoch):
     loss_train_tmp = train(i, model, expert_demo_train_dir, train_data_name_list, optimizer, criterion, device)
 
     # myfile = open('./trained_model/model_' + now_date + '_' + now_time + '/loss.txt', 'a')
-    myfile = open('/mnt/sda2/BDD/log/6/model_' + now_date + '_' + now_time + '/loss.txt', 'a')
+    myfile = open('/mnt/sda2/BDD/log/0/model_' + now_date + '_' + now_time + '/loss.txt', 'a')
 
     myfile.write(str(loss_train_tmp) + '\n')
     myfile.close()
@@ -174,7 +176,7 @@ for i in range(epoch):
     if i % 20 == 0:
 
         # torch.save(model.state_dict(), './trained_model/model_' + now_date + '_' + now_time + '/epoch' + str(i) + '_' + str(int(loss_train_tmp)) + '.pt')
-        torch.save(model.state_dict(), '/mnt/sda2/BDD/log/6/model_' + now_date + '_' + now_time + '/epoch' + str(i) + '_' + str(int(loss_train_tmp)) + '.pt')
+        torch.save(model.state_dict(), '/mnt/sda2/BDD/log/0/model_' + now_date + '_' + now_time + '/epoch' + str(i) + '_' + str(int(loss_train_tmp)) + '.pt')
         print("save complete with " + now_date + '_' + now_time)
 
 

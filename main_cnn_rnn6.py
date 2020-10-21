@@ -17,7 +17,7 @@ import PIL.Image as pilimg
 import numpy as np
 import time
 from datetime import datetime
-from model import MLP, LPNET, LPNET_MLP, LPNET_R2P2, LPNET_V03, LPNET_V03_sep
+from model import MLP, LPNET, LPNET_MLP, LPNET_R2P2, LPNET_V03, LPNET_V03_sep, LPNET_V04
 import os
 
 torch.set_num_threads(2)
@@ -115,7 +115,7 @@ def train(epoch, model, train_data_dir, train_data_name_list, optimizer, criteri
             print("Training with", epoch, "epoch,", i, "steps")
 
     # loss_total = loss_total.cpu().detach().numpy()
-    loss_total = loss_total.numpy()
+    loss_total = loss_total.numpy() / (rnd_index.shape[0] * 5)
     print("Epoch", epoch, " Iter loss", loss_total)
     return loss_total
 
@@ -154,7 +154,7 @@ with open(expert_demo_train_dir + '/' + train_data_name_list[0]) as tmp_json2:
     print("Local Path Length Set Completed with", LPNET_OUTPUT)
     print("BP Length Set Completed with", BP_DIM)
 
-model = LPNET_V03_sep(rnn_output_dim=100, path_length=LPNET_OUTPUT, device=device)
+model = LPNET_V04(rnn_output_dim=100, path_length=LPNET_OUTPUT, device=device)
 
 print(model)
 

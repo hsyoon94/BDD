@@ -24,15 +24,18 @@ bp4 = 0
 bp5 = 0
 bp6 = 0
 
+print(len(data_name_list))
 
 for j in range(len(data_name_list)):
 
     try:
         with open(data_raw_dir + '/' + data_name_list[j]) as myfile:
             json_myfile = json.load(myfile)
-    except ValueError:
+    except ValueError as val_e:
+        print("VALUE ERROR", val_e)
         continue
-    except IOError:
+    except IOError as io_e:
+        print("IO ERROR", io_e)
         continue
 
     if j%100 == 0:
