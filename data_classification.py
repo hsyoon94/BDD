@@ -63,8 +63,6 @@ for j in range(len(data_name_list)):
         shutil.move(data_raw_dir + '/' + data_name_list[j], data_raw_dir + '/6/' + data_name_list[j])
         bp6 = bp6 + 1
 
-
-
 print("bp0", bp0)
 print("bp1", bp1)
 print("bp2", bp2)

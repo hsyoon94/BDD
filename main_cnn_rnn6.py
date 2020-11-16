@@ -54,18 +54,19 @@ def train(epoch, model, train_data_dir, train_data_name_list, optimizer, criteri
             print("JSON IOerror with ", train_data_name_list[rnd_index[i]])
             continue
 
-        input_tp = np.array([input_json['data']['tp_grid']])
+        # input_tp = np.array([input_json['data']['tp_grid']])
         input_ev = np.array([input_json['data']['ev_grid']])
-        input_evh = np.array([input_json['data']['evh_grid']])
-        input_tv = np.array([input_json['data']['tv_grid']])
-        input_tvh = np.array([input_json['data']['tvh_grid']])
-        input_lane = np.array([input_json['data']['lane_grid']])
-        input_cl = np.array([input_json['data']['cl_grid']])
+        # input_evh = np.array([input_json['data']['evh_grid']])
+        # input_tv = np.array([input_json['data']['tv_grid']])
+        # input_tvh = np.array([input_json['data']['tvh_grid']])
+        # input_lane = np.array([input_json['data']['lane_grid']])
+        # input_cl = np.array([input_json['data']['cl_grid']])
         input_gp = np.array([input_json['data']['gp_grid']])
-        input_bp = np.array(input_json['data']['behavior'])
+        # input_bp = np.array(input_json['data']['behavior'])
         input_lane_coef = np.array(input_json['data']['lane_coef'])
 
-        input = np.vstack([input_tp, input_ev, input_evh, input_tv, input_tvh, input_lane, input_cl, input_gp])
+        # input = np.vstack([input_tp, input_ev, input_evh, input_tv, input_tvh, input_lane, input_cl, input_gp])
+        input = np.vstack([input_ev, input_gp])
         input = np.reshape(input, [1, input.shape[0], input.shape[1], input.shape[2]])
 
         input_tensor = torch.tensor(input).to(device)

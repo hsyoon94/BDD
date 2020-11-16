@@ -3,13 +3,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import torch.autograd as autograd
-# from config import Config
-# if not Config.linux_env:
-#     import matplotlib.pyplot as plt
-# from torchvision.models.resnet import ResNet,BasicBlock,model_urls
-# import torch.utils.model_zoo as model_zoo
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from torchvision import datasets, models, transforms
+
+import numpy as np
+import matplotlib.pyplot as plt
 
 from torch.autograd import Variable
 import torchvision.utils as utils
@@ -21,7 +19,6 @@ import math
 import numpy as np
 import time
 from datetime import datetime
-
 
 class MLP(nn.Module):
     def __init__(self, input_dim, output_dim, device):
@@ -59,7 +56,7 @@ class LPNET_V04(nn.Module):
         self.F1_DIM = 128
 
         self.ReLU = nn.ReLU().to(self.device)
-        self.IE_CHANNEL = 8
+        self.IE_CHANNEL = 2
 
         self.CNN1 = nn.Conv2d(self.IE_CHANNEL, self.IE_CHANNEL, 5, stride=2).to(self.device)
         self.CNN2 = nn.Conv2d(self.IE_CHANNEL, self.IE_CHANNEL / 2, 3, stride=1).to(self.device)
@@ -68,7 +65,7 @@ class LPNET_V04(nn.Module):
         # # Unremark below with 8 channel input (IE)
         # self.resnet18[0] = nn.Conv2d(self.IE_CHANNEL, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False).to(device)
 
-        self.F0_NET = nn.Linear(26896, self.F1_DIM).to(self.device).to(self.device)
+        self.F0_NET = nn.Linear(6724, self.F1_DIM).to(self.device).to(self.device)
 
         self.GRU = nn.GRU(self.dynamic_input_dim, self.rnn_output_dim, 1).to(self.device)
 
@@ -91,6 +88,12 @@ class LPNET_V04(nn.Module):
         prediction = self.ReLU(prediction)
         prediction = self.MaxPool(prediction)
 
+        # print(prediction.clone().cpu().detach().numpy().shape)
+        # plt.imshow(prediction.clone().cpu().detach().numpy()[0, 0, :, :])
+        # plt.show()
+
+        # plt.imshow(transforms.ToPILImage()(prediction.clone().cpu()[0,0 , :, :]))
+        # plt.show()
 
         self.F0_DIM = prediction.shape[0] * prediction.shape[1] * prediction.shape[2] * prediction.shape[3]
         prediction = prediction.view(-1, self.F0_DIM)  # reshape Variable
@@ -220,9 +223,6 @@ class LPNET_V03_sep(nn.Module):
 
 
 
-
-
-
 class LPNET_V03(nn.Module):
     def __init__(self, rnn_output_dim, bp_dim, path_length, device):
         super(LPNET_V03, self).__init__()
@@ -312,6 +312,69 @@ class LPNET_V03(nn.Module):
 
 
         return dynamic_input
+
+
+
+class LPNET_MLP05(nn.Module):
+    def __init__(self, rnn_output_dim, path_length, device):
+        super(LPNET_MLP05, self).__init__()
+
+        self.device = device
+        self.rnn_output_dim = rnn_output_dim  # 2
+        self.dynamic_input_dim = path_length  # 10
+        # self.BP_DIM = bp_dim
+        self.F0_DIM = 256
+        self.F1_DIM = 128
+        self.F2_DIM = 64
+
+        self.ReLU = nn.ReLU().to(self.device)
+        self.IE_CHANNEL = 3
+
+        self.CNN1 = nn.Conv2d(self.IE_CHANNEL, self.IE_CHANNEL, 5, stride=2).to(self.device)
+        self.CNN2 = nn.Conv2d(self.IE_CHANNEL, self.IE_CHANNEL, 5, stride=2).to(self.device)
+        self.CNN3 = nn.Conv2d(self.IE_CHANNEL, 1, 5, stride=2).to(self.device)
+        self.MaxPool = nn.MaxPool2d(3, 1).to(self.device)
+
+        self.F0_NET = nn.Linear(self.F0_DIM, self.F1_DIM).to(self.device)
+        self.F1_NET = nn.Linear(self.F1_DIM, self.F2_DIM).to(self.device)
+        self.F2_NET = nn.Linear(self.F2_DIM, self.dynamic_input_dim).to(self.device)
+
+
+    def forward(self, information_embedder):
+
+        # plt.imshow(information_embedder.clone().cpu().detach().numpy()[0, 0, :, :])
+        # plt.show()
+
+        plt.imshow(transforms.ToPILImage()(information_embedder.clone().cpu()[0,0 , :, :]))
+        plt.show()
+
+        prediction = self.CNN1(information_embedder)
+        prediction = self.ReLU(prediction)
+        prediction = self.MaxPool(prediction)
+
+        prediction = self.CNN2(prediction)
+        prediction = self.ReLU(prediction)
+        prediction = self.MaxPool(prediction)
+
+        prediction = self.CNN3(prediction)
+        prediction = self.ReLU(prediction)
+        prediction = self.MaxPool(prediction)
+
+        self.F0_DIM = prediction.shape[0] * prediction.shape[1] * prediction.shape[2] * prediction.shape[3]
+        prediction = prediction.view(-1, self.F0_DIM)  # reshape Variable
+
+        # F0 -> F1
+        prediction = self.F0_NET(prediction)
+        prediction = self.ReLU(prediction)
+
+        prediction = self.F1_NET(prediction)
+        prediction = self.ReLU(prediction)
+
+        prediction = self.F2_NET(prediction)
+        prediction = self.ReLU(prediction)
+
+        return prediction
+
 
 
 
