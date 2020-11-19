@@ -345,8 +345,8 @@ class LPNET_MLP05(nn.Module):
         # plt.imshow(information_embedder.clone().cpu().detach().numpy()[0, 0, :, :])
         # plt.show()
 
-        plt.imshow(transforms.ToPILImage()(information_embedder.clone().cpu()[0,0 , :, :]))
-        plt.show()
+        # plt.imshow(transforms.ToPILImage()(information_embedder.clone().cpu()[0,0 , :, :]))
+        # plt.show()
 
         prediction = self.CNN1(information_embedder)
         prediction = self.ReLU(prediction)
