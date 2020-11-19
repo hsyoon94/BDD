@@ -130,13 +130,13 @@ now = datetime.now()
 now_date = str(now.year)[-2:] + str(now.month).zfill(2) + str(now.day).zfill(2)
 now_time = str(now.hour).zfill(2) + str(now.minute).zfill(2)
 
-if os.path.exists('/mnt/sda2/BDD/log/0/model_' + now_date + '_' + now_time + '/') is False:
-    os.mkdir('/mnt/sda2/BDD/log/0/model_' + now_date + '_' + now_time + '/')
+if os.path.exists('/mnt/sda2/BDD/log/1/model_' + now_date + '_' + now_time + '/') is False:
+    os.mkdir('/mnt/sda2/BDD/log/1/model_' + now_date + '_' + now_time + '/')
 
 is_cuda = torch.cuda.is_available()
 device = torch.device('cuda' if is_cuda else 'cpu')
 
-expert_demo_train_dir = '/mnt/sda2/BDD/data/0'
+expert_demo_train_dir = '/mnt/sda2/BDD/data/1'
 
 # With above expert_dmo_train_dir, extract data file name list and save to train_data_name_list
 train_data_name_list = [f for f in listdir(expert_demo_train_dir) if isfile(join(expert_demo_train_dir, f))]
@@ -174,7 +174,7 @@ for i in range(epoch):
     loss_train_tmp = train(i, model, expert_demo_train_dir, train_data_name_list, optimizer, criterion, device)
 
     # myfile = open('./trained_model/model_' + now_date + '_' + now_time + '/loss.txt', 'a')
-    myfile = open('/mnt/sda2/BDD/log/0/model_' + now_date + '_' + now_time + '/loss.txt', 'a')
+    myfile = open('/mnt/sda2/BDD/log/1/model_' + now_date + '_' + now_time + '/loss.txt', 'a')
 
     myfile.write(str(loss_train_tmp) + '\n')
     myfile.close()
@@ -182,7 +182,7 @@ for i in range(epoch):
     if i % 20 == 0:
 
         # torch.save(model.state_dict(), './trained_model/model_' + now_date + '_' + now_time + '/epoch' + str(i) + '_' + str(int(loss_train_tmp)) + '.pt')
-        torch.save(model.state_dict(), '/mnt/sda2/BDD/log/0/model_' + now_date + '_' + now_time + '/epoch' + str(i) + '_' + str(int(loss_train_tmp)) + '.pt')
+        torch.save(model.state_dict(), '/mnt/sda2/BDD/log/1/model_' + now_date + '_' + now_time + '/epoch' + str(i) + '_' + str(int(loss_train_tmp)) + '.pt')
         print("save complete with " + now_date + '_' + now_time)
 
 

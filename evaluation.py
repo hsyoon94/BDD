@@ -33,15 +33,15 @@ is_cuda = torch.cuda.is_available()
 device = torch.device('cuda' if is_cuda else 'cpu')
 
 test_set_dir = '/mnt/sda2/BDD/data_test/'
-trained_model_dir = '/mnt/sda2/BDD/'
+trained_model_dir = '/mnt/sda2/BDD/log/'
 
-lpnet0_dir = trained_model_dir + '0/.py'
-lpnet1_dir = trained_model_dir + '1/.py'
-lpnet2_dir = trained_model_dir + '2/.py'
-lpnet3_dir = trained_model_dir + '3/.py'
-lpnet4_dir = trained_model_dir + '4/.py'
-lpnet5_dir = trained_model_dir + '4/.py'
-lpnet6_dir = trained_model_dir + '5/.py'
+lpnet0_dir = trained_model_dir + '0/model_201119_1452/epoch0_27.pt'
+lpnet1_dir = trained_model_dir + '1/model_201119_1452/epoch0_2.pt'
+lpnet2_dir = trained_model_dir + '2/model_201119_1452/epoch0_30.pt'
+lpnet3_dir = trained_model_dir + '3/model_201119_1452/epoch0_8.pt'
+lpnet4_dir = trained_model_dir + '4/model_201119_1452/epoch0_30.pt'
+lpnet5_dir = trained_model_dir + '5/model_201119_1452/epoch0_18.pt'
+lpnet6_dir = trained_model_dir + '6/model_201119_1453/epoch0_19.pt'
 
 # With above expert_dmo_train_dir, extract data file name list and save to train_data_name_list
 test_data_name_list = [f for f in listdir(test_set_dir) if isfile(join(test_set_dir, f))]
@@ -53,9 +53,25 @@ FEATURE_DIM = 128
 BP_DIM = 7
 LPNET_OUTPUT = 10
 LPNET_LSTM_INPUT = FEATURE_DIM + BP_DIM
-mse_loss = 0
 
-with open(expert_demo_train_dir + '/' + train_data_name_list[0]) as tmp_json2:
+mse_loss_total = 0
+mse_loss0 = 0
+mse_loss1 = 0
+mse_loss2 = 0
+mse_loss3 = 0
+mse_loss4 = 0
+mse_loss5 = 0
+mse_loss6 = 0
+
+count_bp0 = 0
+count_bp1 = 0
+count_bp2 = 0
+count_bp3 = 0
+count_bp4 = 0
+count_bp5 = 0
+count_bp6 = 0
+
+with open(test_set_dir + '/' + test_data_name_list[0]) as tmp_json2:
     json_for_dynamic_input = json.load(tmp_json2)
     output_path = json_for_dynamic_input['data']['future_trajectory_tr']
     bp_tmp = json_for_dynamic_input['data']['behavior']
@@ -80,9 +96,20 @@ lpnet4.load_state_dict(torch.load(lpnet4_dir))
 lpnet5.load_state_dict(torch.load(lpnet5_dir))
 lpnet6.load_state_dict(torch.load(lpnet6_dir))
 
+lpnet0.eval()
+lpnet1.eval()
+lpnet2.eval()
+lpnet3.eval()
+lpnet4.eval()
+lpnet5.eval()
+lpnet6.eval()
+
 criterion = nn.MSELoss()
 
 for i in range(len(test_data_name_list)):
+
+    print("test data length", len(test_data_name_list))
+
     try:
         with open(test_set_dir + '/' + test_data_name_list[i]) as tmp_json:
             input_json = json.load(tmp_json)
@@ -112,29 +139,7 @@ for i in range(len(test_data_name_list)):
     input = np.reshape(input, [1, input.shape[0], input.shape[1], input.shape[2]])
     input_tensor = torch.tensor(input).to(device)
 
-    if input_bp[0] == 1:
-        predicted_output = lpnet0.forward(input_tensor.float())
-
-    elif input_bp[1] == 1:
-        predicted_output = lpnet1.forward(input_tensor.float())
-
-    elif input_bp[2] == 1:
-        predicted_output = lpnet2.forward(input_tensor.float())
-
-    elif input_bp[3] == 1:
-        predicted_output = lpnet3.forward(input_tensor.float())
-
-    elif input_bp[4] == 1:
-        predicted_output = lpnet4.forward(input_tensor.float())
-
-    elif input_bp[5] == 1:
-        predicted_output = lpnet5.forward(input_tensor.float())
-
-    elif input_bp[6] == 1:
-        predicted_output = lpnet6.forward(input_tensor.float())
-
     output_raw = input_json['data']['future_trajectory_tr']
-
     output = []
     for output_tmp in output_raw:
         output.append(output_tmp[0])
@@ -142,9 +147,58 @@ for i in range(len(test_data_name_list)):
 
     output = torch.tensor(output).to(device).double()
 
-    mse_loss = mse_loss + nn.MSELoss(predicted_output, output)
+    if input_bp[0] == 1:
+        predicted_output = lpnet0.forward(input_tensor.float())
+        mse_loss0 = mse_loss0 + nn.MSELoss()(output, predicted_output[0])
+        count_bp0 = count_bp0 + 1
 
+    elif input_bp[1] == 1:
+        predicted_output = lpnet1.forward(input_tensor.float())
+        mse_loss1 = mse_loss1 + nn.MSELoss()(output, predicted_output[0])
+        count_bp1 = count_bp1 + 1
 
-mse_loss_avg = mse_loss / len(test_data_name_list)
+    elif input_bp[2] == 1:
+        predicted_output = lpnet2.forward(input_tensor.float())
+        mse_loss2 = mse_loss2 + nn.MSELoss()(output, predicted_output[0])
+        count_bp2 = count_bp2 + 1
 
-print("AVERAGE MSE LOSS", mse_loss_avg)
+    elif input_bp[3] == 1:
+        predicted_output = lpnet3.forward(input_tensor.float())
+        mse_loss3 = mse_loss3 + nn.MSELoss()(output, predicted_output[0])
+        count_bp3 = count_bp3 + 1
+
+    elif input_bp[4] == 1:
+        predicted_output = lpnet4.forward(input_tensor.float())
+        mse_loss4 = mse_loss4 + nn.MSELoss()(output, predicted_output[0])
+        count_bp4 = count_bp4 + 1
+
+    elif input_bp[5] == 1:
+        predicted_output = lpnet5.forward(input_tensor.float())
+        mse_loss5 = mse_loss5 + nn.MSELoss()(output, predicted_output[0])
+        count_bp5 = count_bp5 + 1
+
+    elif input_bp[6] == 1:
+        predicted_output = lpnet6.forward(input_tensor.float())
+        mse_loss6 = mse_loss6 + nn.MSELoss()(output, predicted_output[0])
+        count_bp6 = count_bp6 + 1
+
+    mse_loss_total = mse_loss0 + mse_loss1 + mse_loss2 + mse_loss3 + mse_loss4 + mse_loss5 + mse_loss6
+
+mse_loss0_avg = mse_loss0 / count_bp0
+mse_loss1_avg = mse_loss1 / count_bp1
+mse_loss2_avg = mse_loss2 / count_bp2
+mse_loss3_avg = mse_loss3 / count_bp3
+mse_loss4_avg = mse_loss4 / count_bp4
+mse_loss5_avg = mse_loss5 / count_bp5
+mse_loss6_avg = mse_loss6 / count_bp6
+
+mse_loss_total_avg = mse_loss_total / len(test_data_name_list)
+
+print("AVERAGE MSE LOSS 0", mse_loss0_avg)
+print("AVERAGE MSE LOSS 1", mse_loss1_avg)
+print("AVERAGE MSE LOSS 2", mse_loss2_avg)
+print("AVERAGE MSE LOSS 3", mse_loss3_avg)
+print("AVERAGE MSE LOSS 4", mse_loss4_avg)
+print("AVERAGE MSE LOSS 5", mse_loss5_avg)
+print("AVERAGE MSE LOSS 6", mse_loss6_avg)
+print("AVERAGE MSE LOSS TOTAL", mse_loss_total_avg)
