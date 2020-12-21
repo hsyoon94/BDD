@@ -56,7 +56,7 @@ class LPNET_V04(nn.Module):
         self.F1_DIM = 128
 
         self.ReLU = nn.ReLU().to(self.device)
-        self.IE_CHANNEL = 2
+        self.IE_CHANNEL = 8
 
         self.CNN1 = nn.Conv2d(self.IE_CHANNEL, self.IE_CHANNEL, 5, stride=2).to(self.device)
         self.CNN2 = nn.Conv2d(self.IE_CHANNEL, self.IE_CHANNEL / 2, 3, stride=1).to(self.device)
@@ -65,7 +65,7 @@ class LPNET_V04(nn.Module):
         # # Unremark below with 8 channel input (IE)
         # self.resnet18[0] = nn.Conv2d(self.IE_CHANNEL, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False).to(device)
 
-        self.F0_NET = nn.Linear(6724, self.F1_DIM).to(self.device).to(self.device)
+        self.F0_NET = nn.Linear(26896, self.F1_DIM).to(self.device).to(self.device)
 
         self.GRU = nn.GRU(self.dynamic_input_dim, self.rnn_output_dim, 1).to(self.device)
 
